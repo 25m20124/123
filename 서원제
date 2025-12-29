@@ -26,15 +26,8 @@ body {
     white-space: pre-line;
 }
 
-.user {
-    text-align: right;
-    color: #9cdcfe;
-}
-
-.bot {
-    text-align: left;
-    color: #d4d4d4;
-}
+.user { text-align: right; color: #9cdcfe; }
+.bot { text-align: left; color: #d4d4d4; }
 
 #inputBox {
     position: fixed;
@@ -90,6 +83,11 @@ function addMessage(text, cls) {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
+// ✅ 엔터키 전송 추가
+document.getElementById("userInput").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") send();
+});
+
 function send() {
     const input = document.getElementById("userInput");
     const q = input.value.trim();
@@ -109,41 +107,24 @@ function send() {
     const lower = q.toLowerCase();
 
     const clues = [
-        {
-            keywords: ["시간", "언제"],
-            answer: "화재는 밤 12시 25분경 발생한 것으로 추정됩니다."
-        },
-        {
-            keywords: ["장소", "숭례문"],
-            answer: "사건 장소는 숭례문이며, 내부 구조를 아는 인물에게 유리합니다."
-        },
-        {
-            keywords: ["cctv", "택시", "동선"],
-            answer: "사건 전후, 수상한 이동 동선이 CCTV에 포착되었습니다."
-        },
-        {
-            keywords: ["사다리", "침입"],
-            answer: "범인은 사다리를 이용해 외부에서 몰래 접근했습니다."
-        },
-        {
-            keywords: ["소방", "불", "전문"],
-            answer: "범인은 화재와 방재 시스템에 대한 이해가 있었을 가능성이 있습니다."
-        }
+        { keywords: ["시간", "언제"], answer: "화재는 밤 12시 25분경 발생한 것으로 추정됩니다." },
+        { keywords: ["장소", "숭례문"], answer: "사건 장소는 숭례문이며, 내부 구조를 아는 인물에게 유리합니다." },
+        { keywords: ["cctv", "택시", "동선"], answer: "사건 전후, 수상한 이동 동선이 CCTV에 포착되었습니다." },
+        { keywords: ["사다리", "침입"], answer: "범인은 사다리를 이용해 외부에서 몰래 접근했습니다." },
+        { keywords: ["소방", "불", "전문"], answer: "범인은 화재와 방재 시스템에 대한 이해가 있었을 가능성이 있습니다." }
     ];
 
-    // 🔎 전체 키워드 감지 개수 세기
-    let detected = [];
+    // ✅ "단서 그룹 단위"로 감지
+    let matchedClues = [];
 
     for (let clue of clues) {
-        for (let k of clue.keywords) {
-            if (lower.includes(k)) {
-                detected.push({ keyword: k, clue });
-            }
+        if (clue.keywords.some(k => lower.includes(k))) {
+            matchedClues.push(clue);
         }
     }
 
-    // ❌ 키워드 2개 이상이면 차단
-    if (detected.length >= 2) {
+    // ❌ 2개 이상이면 차단
+    if (matchedClues.length >= 2) {
         addMessage(
             "⚠ 하나의 질문에는 하나의 단서만 포함할 수 있습니다.\n단어를 하나만 사용해 질문하세요.",
             "bot"
@@ -151,10 +132,10 @@ function send() {
         return;
     }
 
-    // ✅ 정확히 1개일 때만 단서 제공
-    if (detected.length === 1) {
+    // ✅ 1개만 있을 때
+    if (matchedClues.length === 1) {
         clueUsed = true;
-        addMessage(detected[0].clue.answer, "bot");
+        addMessage(matchedClues[0].answer, "bot");
         return;
     }
 
