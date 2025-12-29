@@ -1,3 +1,4 @@
+Html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -107,7 +108,6 @@ function send() {
 
     const lower = q.toLowerCase();
 
-    // ✅ 단서 그룹 정의
     const clues = [
         {
             keywords: ["시간", "언제"],
@@ -131,32 +131,34 @@ function send() {
         }
     ];
 
-    // ✅ 어떤 단서가 감지됐는지 체크
-    let matched = [];
+    // 🔎 전체 키워드 감지 개수 세기
+    let detected = [];
 
     for (let clue of clues) {
-        if (clue.keywords.some(k => lower.includes(k))) {
-            matched.push(clue);
+        for (let k of clue.keywords) {
+            if (lower.includes(k)) {
+                detected.push({ keyword: k, clue });
+            }
         }
     }
 
-    // ✅ 2개 이상이면 차단
-    if (matched.length >= 2) {
+    // ❌ 키워드 2개 이상이면 차단
+    if (detected.length >= 2) {
         addMessage(
-            "⚠ 하나의 질문에는 하나의 단서만 포함할 수 있습니다.\n하나씩 나누어 질문하세요.",
+            "⚠ 하나의 질문에는 하나의 단서만 포함할 수 있습니다.\n단어를 하나만 사용해 질문하세요.",
             "bot"
         );
         return;
     }
 
-    // ✅ 1개일 때만 단서 제공
-    if (matched.length === 1) {
+    // ✅ 정확히 1개일 때만 단서 제공
+    if (detected.length === 1) {
         clueUsed = true;
-        addMessage(matched[0].answer, "bot");
+        addMessage(detected[0].clue.answer, "bot");
         return;
     }
 
-    // ❗ 해당 없음
+    // ❓ 아무 키워드도 없을 때
     addMessage(
         "그 질문은 단서를 제공하지 않습니다. 질문을 다시 생각해 보세요.",
         "bot"
